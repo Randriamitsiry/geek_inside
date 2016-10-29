@@ -5,7 +5,7 @@
  */
 package geek_risk;
 
-import geek_risk.classe.Client;
+import geek_risk.Client;
 import java.io.BufferedReader;
 import java.io.FileWriter;
 import java.io.PrintWriter;
