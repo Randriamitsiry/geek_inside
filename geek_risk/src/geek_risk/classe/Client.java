@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package geek_risk.classe;
+package geek_risk;
 
 import com.mysql.jdbc.Connection;
 import com.mysql.jdbc.Statement;
@@ -20,6 +20,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import javax.swing.JOptionPane;
+import geek_risk.classe.Connexion;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -47,8 +48,8 @@ public class Client {
     }
     public void start_thread() throws IOException
     {
-          conn = new Connexion();
-          envoye = new PrintWriter(sck.getOutputStream());
+        conn = new Connexion();
+        envoye = new PrintWriter(sck.getOutputStream());
           Thread recevoir;
           recevoir = new Thread(new Runnable() {
           @Override
@@ -60,58 +61,33 @@ public class Client {
                     recu = new BufferedReader(new InputStreamReader(sck.getInputStream()));
                     String ret = recu.readLine();
                     JSONObject rc = new JSONObject(ret);
-                    JSONArray test = null; //reponse
-                    JSONObject retour_requete = null; // preperation du requete
-                    // traite la requete en cours
-                    //database :: base de donnee
-                    //requete :: sql
-                    Boolean has_database = rc.has("database") && rc.has("requete");
-                    if(has_database)
+                    if(rc.has("database"))
                     {
+                        System.out.println("database :");
+                        JSONArray test = new JSONArray();
                         test = rc.getJSONArray("database");
                         String db = test.get(0).toString();
                         conn.setDatabase_name(db);
-                        
-                        test = rc.getJSONArray("requete");
-                        //test = rec.getJSONArray("requete");
-                        reponse = TraiterRequete(test.get(0).toString());
-                        envoyerMessage();
-                    }
-                    else if(rc.has("database"))
-                    {
-                        //System.out.println("database :");
-                        //test = new JSONArray();
-                        test = rc.getJSONArray("database"); // get the selected database
-                        String db = test.get(0).toString();
-                        if(getDatabase(db)) //test si la db existe ou non
-                        {
-                            conn.setDatabase_name(db);
-                            retour_requete = getAllTable();
-                        }
-                        else
-                        {
-                            retour_requete = new JSONObject();
-                            retour_requete.put("error", "Ce base de donnée n'existe pas !");
-                        }
-                        reponse = retour_requete.toString();
+                        JSONObject tables = getAllTable();
+                        reponse = tables.toString();
                         envoyerMessage();
                     }
                     else if(rc.has("requete"))
                     { 
                         //System.out.println(".run()");
                         msg = ret;
-                        //System.out.println(msg);
+                        System.out.println(msg);
                         JSONObject rec = new JSONObject(msg);
-                        test = rec.getJSONArray("requete");
-                        reponse = TraiterRequete(test.get(0).toString());
-                       // System.out.println(reponse);
+                        JSONArray requete_brute = rec.getJSONArray("requete");
+                        reponse = TraiterRequete(requete_brute.get(0).toString());
+                        System.out.println(reponse);
                         envoyerMessage();   
 
                     }
                     else{
-                        //System.out.println("ATO tsika zao");
+                         System.out.println("ATO tsika zao");
                         JSONObject erreur = new JSONObject();
-                        erreur.append("error", "database_empty");
+                        erreur.append("database_error", "database_empty");
                         reponse =erreur.toString();
                         envoyerMessage();                       
                     }
@@ -124,6 +100,7 @@ public class Client {
           });
           recevoir.start();
     }
+
     public Client(InetAddress ip_cli) {
         this.ip_cli = ip_cli;
     }
@@ -156,40 +133,9 @@ public class Client {
     public void setConn(Connexion conn) {
         this.conn = conn;
     }
-    public static boolean getDatabase(String database)
-    {
-        boolean retour = false;
-        try{
-            String URL = "jdbc:mysql://localhost:3306/mysql";
-            Class.forName("com.mysql.jdbc.Driver").newInstance();
-            Connection conn = (Connection) DriverManager.getConnection(URL,"root","");
-            Statement st = (Statement) conn.createStatement();
-            try{
-                ResultSet rs = st.executeQuery("SHOW DATABASES like '"+database+"'");
-                if(rs.next())
-                {
-                    retour = true;
-                }
-                else
-                {
-                    retour=false;
-                }
-                //System.out.println("getAllTable executé avec succès");
-            }
-            catch(Exception e)
-            {
-                System.err.println("Show table failed");
-            }
-        }
-       catch(Exception ex)
-       {
-           System.err.println("Failed to load all database"+ex.getMessage());
-       }
-        return retour; 
-    }
     public static JSONObject getAllTable()
     {
-        //System.out.println("getAllTable executé");
+        System.out.println("getAllTable executé");
         JSONObject retour = null;
         try{
              retour = new JSONObject();
@@ -200,16 +146,9 @@ public class Client {
             Statement st = (Statement) conn.createStatement();
             try{
                 ResultSet rs = st.executeQuery("SHOW TABLES");
-                if(rs.next())
+                while(rs.next())
                 {
-                    do
-                    {
-                        retour.append("table", rs.getString(1));
-                    }while(rs.next());
-                }
-                else
-                {
-                    retour.append("error", "Ce base de donné n'existe pas !");
+                    retour.append("table", rs.getString(1));
                 }
                 System.out.println("getAllTable executé avec succès");
             }
@@ -220,7 +159,7 @@ public class Client {
         }
        catch(Exception ex)
        {
-           System.err.println("Failed to load all table of the database"+ex.getMessage());
+           System.err.println("Failed to load all table of the database");
        }
         return retour; 
     }
@@ -234,39 +173,9 @@ public class Client {
         Statement st = (Statement) conn.createStatement();
         try{
             ResultSet rs = null;
-            if(req.toLowerCase().contains("create"))
+            if(req.toLowerCase().contains("select") || req.toLowerCase().contains("desc"))
             {
-                retour.append("action", "create");
-                st.executeUpdate(req);
-                retour.append("affacté", st.getUpdateCount());
-                st.close();
-            }
-            else if(req.toLowerCase().contains("insert"))
-            {
-                retour.append("action", "INSERT");
-                st.execute(req);
-                retour.append("affecté", st.getUpdateCount() + " : Lignes inserés");
-                st.close();
-            }
-            else if(req.toLowerCase().contains("update"))
-            {
-               // retour.append("Action", "UPDATE");
-                st.executeUpdate(req);
-                //System.out.println("requete update executé");
-                retour.append("affecté", "Nombre de ligne mis à jour : "+ st.getUpdateCount());
-                st.close();
-            }
-            else if(req.toLowerCase().contains("delete"))
-            {
-                //retour.append("Action", "DELETE");
-                st.execute(req);
-                retour.append("affecté", st.getUpdateCount()+ ": lignes supprimés");
-                st.close();
-            }
-            else
-            {
-                //
-                retour.append("action", "SELECT");
+                //retour.append("Action", "SELECT");
                 rs = st.executeQuery(req);
                 int colcount = rs.getMetaData().getColumnCount();
                 while(rs.next())
@@ -278,6 +187,28 @@ public class Client {
                 }
                 System.out.println("Table :" + rs.getMetaData().getTableName(1));
                 rs.close(); 
+            }
+            else if(req.toLowerCase().contains("update"))
+            {
+               // retour.append("Action", "UPDATE");
+                st.executeUpdate(req);
+                System.out.println("requete update executé");
+                retour.append("Affecté", "Nombre de ligne mis à jour : "+ st.getUpdateCount());
+                st.close();
+            }
+            else if(req.toLowerCase().contains("delete"))
+            {
+                retour.append("Action", "DELETE");
+                st.execute(req);
+                retour.append("Affecté", st.getUpdateCount()+ ": lignes supprimés");
+                st.close();
+            }
+            else
+            {
+                //retour.append("Action", "INSERT");
+                st.execute(req);
+                retour.append("Affecté", st.getUpdateCount() + " : Lignes inserés");
+                st.close();
             }
             
             /*int affected = rs.getRow();
@@ -302,6 +233,7 @@ public class Client {
         {
             System.err.println(ex.getMessage());
         }
+        
     }
     
 }
