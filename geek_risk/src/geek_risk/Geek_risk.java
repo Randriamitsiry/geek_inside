@@ -17,9 +17,6 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.net.ssl.SSLServerSocket;
-import javax.net.ssl.SSLServerSocketFactory;
-import javax.net.ssl.SSLSocket;
 import javax.swing.JOptionPane;
 
 /**
@@ -31,10 +28,8 @@ public class Geek_risk {
     /**
      * @param args the command line arguments
      */
-    static SSLServerSocket socketserv;
-    static SSLServerSocketFactory factory;
-    static SSLServerSocket socketserver;
-    static SSLSocket socketduserveur;
+    static ServerSocket socketserver;
+    static Socket socketduserveur;
     static BufferedReader recu;
     static PrintWriter envoye;
     static String msg;
@@ -49,14 +44,10 @@ public class Geek_risk {
         // TODO code application logic here
         System.out.println("En attente de connexion d'un client...");
            try{
-                IP_AUTH = InetAddress.getByAddress(new byte[]{127,0,0,1});
-                factory = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
-                socketserv = (SSLServerSocket) factory.createServerSocket(5001);
-                socketserv.setNeedClientAuth(true);
-                //socketserver = new ServerSocket(5001);
+                socketserver = new ServerSocket(5001);
                 while(true)
                 {
-                        socketduserveur = (SSLSocket) socketserv.accept();
+                        socketduserveur = socketserver.accept();
                         nb_conncte++;
                         System.out.println("Client connecté");
                         System.out.println("Client numero :" +nb_conncte);
@@ -67,7 +58,7 @@ public class Geek_risk {
            }
            catch(Exception ex)
            {
-               JOptionPane.showMessageDialog(null, ex);
+               System.out.println("geek_risk.Geek_risk.main()");
            }
         
     }

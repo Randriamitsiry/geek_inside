@@ -23,7 +23,6 @@ import javax.swing.JOptionPane;
 import geek_risk.classe.Connexion;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import javax.net.ssl.SSLSocket;
 
 /**
  *
@@ -32,7 +31,7 @@ import javax.net.ssl.SSLSocket;
 public class Client {
     private InetAddress ip_cli;
     private static Connexion conn;
-    private static SSLSocket sck;
+    private static Socket sck;
     static BufferedReader recu;
     static PrintWriter envoye;
     static String msg;
@@ -127,7 +126,7 @@ public class Client {
         return sck;
     }
 
-    public void setSck(SSLSocket sck) {
+    public void setSck(Socket sck) {
         this.sck = sck;
     }
 
