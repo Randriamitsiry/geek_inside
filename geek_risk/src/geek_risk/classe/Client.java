@@ -23,6 +23,7 @@ import javax.swing.JOptionPane;
 import geek_risk.classe.Connexion;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import javax.net.ssl.SSLSocket;
 
 /**
  *
@@ -31,7 +32,7 @@ import org.json.JSONObject;
 public class Client {
     private InetAddress ip_cli;
     private static Connexion conn;
-    private static Socket sck;
+    private static SSLSocket sck;
     static BufferedReader recu;
     static PrintWriter envoye;
     static String msg;
@@ -39,6 +40,7 @@ public class Client {
     static DatagramSocket conteneur;
     static FileWriter writer = null;
     static String reponse;
+    private boolean run=true;
     public Client(Connexion conn) {
         this.conn = conn;
     }
@@ -54,13 +56,15 @@ public class Client {
           recevoir = new Thread(new Runnable() {
           @Override
           public void run() {
-           while(true)
+              System.out.println(".run()");
+           while(run)
            {
                 
                 try {
                     recu = new BufferedReader(new InputStreamReader(sck.getInputStream()));
                     String ret = recu.readLine();
                     JSONObject rc = new JSONObject(ret);
+                    System.out.println(ret);
                     if(rc.has("database"))
                     {
                         System.out.println("database :");
@@ -76,7 +80,7 @@ public class Client {
                     { 
                         //System.out.println(".run()");
                         msg = ret;
-                        System.out.println(msg);
+                        //System.out.println(msg);
                         JSONObject rec = new JSONObject(msg);
                         JSONArray requete_brute = rec.getJSONArray("requete");
                         reponse = TraiterRequete(requete_brute.get(0).toString());
@@ -94,6 +98,7 @@ public class Client {
 
                   } catch (Exception ex) {
                       System.out.println(ex.getMessage());
+                      run = false;
                   }                  
           }
            }
@@ -122,7 +127,7 @@ public class Client {
         return sck;
     }
 
-    public void setSck(Socket sck) {
+    public void setSck(SSLSocket sck) {
         this.sck = sck;
     }
 
@@ -198,7 +203,7 @@ public class Client {
             }
             else if(req.toLowerCase().contains("delete"))
             {
-                retour.append("Action", "DELETE");
+                //retour.append("Action", "DELETE");
                 st.execute(req);
                 retour.append("Affecté", st.getUpdateCount()+ ": lignes supprimés");
                 st.close();
