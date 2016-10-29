@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package geek_risk;
+package geek_risk.classe;
 
 import com.mysql.jdbc.Connection;
 import com.mysql.jdbc.Statement;
