@@ -179,7 +179,7 @@ public class Client {
             ResultSet rs = null;
             if(req.toLowerCase().contains("select") || req.toLowerCase().contains("desc"))
             {
-                //retour.append("Action", "SELECT");
+                retour.append("Action", "SELECT");
                 rs = st.executeQuery(req);
                 int colcount = rs.getMetaData().getColumnCount();
                 while(rs.next())
@@ -190,6 +190,7 @@ public class Client {
                     }
                 }
                 System.out.println("Table :" + rs.getMetaData().getTableName(1));
+                System.out.println("ICI");
                 rs.close(); 
             }
             else if(req.toLowerCase().contains("update"))

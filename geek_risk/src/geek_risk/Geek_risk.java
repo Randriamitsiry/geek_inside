@@ -44,7 +44,7 @@ public class Geek_risk {
         // TODO code application logic here
         System.out.println("En attente de connexion d'un client...");
            try{
-                socketserver = new ServerSocket(5001);
+                socketserver = new ServerSocket(5003);
                 while(true)
                 {
                         socketduserveur = socketserver.accept();
@@ -58,7 +58,7 @@ public class Geek_risk {
            }
            catch(Exception ex)
            {
-               System.out.println("geek_risk.Geek_risk.main()");
+               System.out.println(ex.getMessage());
            }
         
     }
